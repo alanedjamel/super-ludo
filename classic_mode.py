@@ -1,3 +1,4 @@
+# classique_mode.py
 import pygame
 import sys
 
@@ -25,10 +26,10 @@ def show_classic_mode_settings(screen):
         colors = [("Rouge", (255, 0, 0)), ("Vert", (0, 255, 0)), ("Jaune", (255, 255, 0)), ("Bleu", (0, 0, 255))]
         color_buttons = []
         for idx, (name, color) in enumerate(colors):
-            rect = pygame.Rect(60 + idx * 85, 140, 60, 60)
-            pygame.draw.rect(screen, color, rect, border_radius=30)
+            rect = pygame.Rect(60 + idx * 85, 140, 50, 50)
+            pygame.draw.circle(screen, color, rect.center, 20)  # Cercle plus petit (rayon 20)
             if selected_color == name:
-                pygame.draw.circle(screen, (255, 255, 255), rect.center, 10)
+                pygame.draw.circle(screen, (255, 255, 255), rect.center, 6)  # Petit cercle de sélection
             color_buttons.append((rect, name))
 
         # === Section joueurs ===
@@ -41,17 +42,22 @@ def show_classic_mode_settings(screen):
 
         player_buttons = [(pygame.Rect(120, 360, 60, 40), 2), (pygame.Rect(240, 360, 60, 40), 4)]
         for rect, num in player_buttons:
-            pygame.draw.rect(screen, (100, 100, 100), rect, border_radius=8)
+            bg_color = (206, 106, 107) if selected_players == num else (100, 100, 100)  # #CE6A6B sinon gris
+            pygame.draw.rect(screen, bg_color, rect, border_radius=8)
             label = small_font.render(f"{num}", True, (255, 255, 255))
             screen.blit(label, (rect.x + 20, rect.y + 10))
-            if selected_players == num:
-                pygame.draw.circle(screen, (255, 255, 255), (rect.x + rect.width - 10, rect.y + 10), 8)
 
         # === Bouton suivant ===
         next_button = pygame.Rect(width // 2 - 60, 450, 120, 50)
-        pygame.draw.rect(screen, (74, 145, 158), next_button, border_radius=10)
-        pygame.draw.rect(screen, (235, 172, 162), next_button, 3, border_radius=10)
-        next_label = font.render("Suivant", True, (255, 255, 255))
+        if selected_color and selected_players:
+            pygame.draw.rect(screen, (206, 106, 107), next_button, border_radius=10)  # #CE6A6B
+            pygame.draw.rect(screen, (33, 46, 83), next_button, 3, border_radius=10)  # #212E53
+            next_label = font.render("Suivant", True, (255, 255, 255))
+        else:
+            pygame.draw.rect(screen, (60, 60, 60), next_button, border_radius=10)
+            pygame.draw.rect(screen, (80, 80, 80), next_button, 2, border_radius=10)
+            next_label = font.render("Suivant", True, (100, 100, 100))
+
         screen.blit(next_label, (next_button.x + 10, next_button.y + 10))
 
         # === Bouton retour ===
@@ -72,13 +78,14 @@ def show_classic_mode_settings(screen):
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if next_button.collidepoint(event.pos):
-                    if selected_color and selected_players:
-                        print(f"Couleur choisie : {selected_color}, Nombre de joueurs : {selected_players}")
-                        running = False  # Aller à l'étape suivante
-
                 if back_rect.collidepoint(event.pos):
-                    return  # Retour à l'étape précédente
+                    return  # Retour à l'écran précédent
+
+                if selected_color and selected_players:
+                    if next_button.collidepoint(event.pos):
+                        print(f"Couleur : {selected_color}, Joueurs : {selected_players}")
+                        # ➤ Tu peux appeler l'écran suivant ici
+                        running = False
 
                 for rect, name in color_buttons:
                     if rect.collidepoint(event.pos):
@@ -87,10 +94,3 @@ def show_classic_mode_settings(screen):
                 for rect, num in player_buttons:
                     if rect.collidepoint(event.pos):
                         selected_players = num
-
-# Test local
-if __name__ == "__main__":
-    pygame.init()
-    screen = pygame.display.set_mode((420, 700))  # Adapter à ton format
-    show_classic_mode_settings(screen)
-    pygame.quit()

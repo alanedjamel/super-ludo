@@ -1,5 +1,6 @@
 import pygame
 import sys
+from classic_mode import show_classic_mode_settings
 
 def show_mode_selection(screen):
     pygame.font.init()
@@ -99,7 +100,7 @@ def show_mode_selection(screen):
 
                 elif next_rect.collidepoint((mx, my)) and selected_mode:
                     print(f"Mode sélectionné : {selected_mode}")
-                    # Appeler ici l'écran suivant selon le mode
+                    show_classic_mode_settings(screen)
 
                 elif back_rect.collidepoint((mx, my)):
                     return  # Retour à l’écran précédent
