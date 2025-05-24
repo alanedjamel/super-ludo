@@ -97,18 +97,22 @@ def show_classic_mode_settings(screen):
                         print(f"Couleur : {selected_color}, Joueurs : {selected_players}")
                         pygame.time.delay(200)
 
-                        # Couleur du joueur (déjà choisie)
-                        player_color = color_name_to_pygame[selected_color]
+                        # ✅ On garde les noms français
+                        player_color = selected_color
 
-                        # Couleurs disponibles
-                        all_colors = ["red", "green", "yellow", "blue"]
-                        all_colors.remove(player_color)  # On retire celle du joueur
+                        # ✅ On retire la couleur du joueur des choix pour l’ordinateur
+                        available_colors = ["Rouge", "Vert", "Jaune", "Bleu"]
+                        available_colors.remove(player_color)
 
-                        # Choix aléatoire pour l'ordinateur
+                        # ✅ Choix aléatoire pour le computer
                         import random
-                        computer_color = random.choice(all_colors)
+                        computer_color = random.choice(available_colors)
 
-                        # Appel du plateau avec les deux couleurs
+                        print(f"[DEBUG] Couleur du joueur : {player_color}")
+                        print(f"[DEBUG] Couleur du computer : {computer_color}")
+                        print(f"[DEBUG] Couleurs disponibles restantes : {available_colors}")
+
+                        # ✅ Appel du plateau
                         show_board(screen, player_color, selected_players, computer_color)
 
                         running = False

@@ -5,10 +5,10 @@ import os
 from utils import*
 
 class Dice:
-    def __init__(self):
+    def __init__(self, screen_width):
         self.value = 1
         self.size = 50
-        self.position = (390, 560)
+        self.position = ((screen_width - self.size) // 2, 650)
         self.update_rect()
         self.border_radius = 12
 
@@ -57,16 +57,19 @@ class Board:
         pygame.font.init()
         pygame.mixer.init()
 
-        self.screen_width = 900
-        self.screen_height = 720
-
-        # width, height = screen.get_size()
-
-        self.cell_size = 80
+        self.screen_width = 480
+        self.screen_height = 800
+        
         self.cols = 10
         self.rows = 6
-        self.margin_top = 50
-        self.margin_left = 50
+        self.cell_size = int(min(self.screen_width // 12, self.screen_height // 10)*1.2)
+        self.grid_width = self.cols * self.cell_size
+        self.grid_height = self.rows * self.cell_size
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.margin_left = (self.screen_width - self.grid_width) // 2
+        self.margin_top = (self.screen_height - self.grid_height) // 2 - 30  # petit décalage vers le haut
+
+
         player_color_fr = COLOR_TRANSLATION.get(player_color, player_color)
         self.player_color = PLAYER_COLORS[player_color_fr]
         computer_color_fr = COLOR_TRANSLATION.get(computer_color, computer_color)
@@ -90,8 +93,8 @@ class Board:
         available_colors = [c for c in all_colors if c != self.player_color]
         self.computer_color = random.choice(available_colors)
 
-
-        self.dice = Dice()
+        #gestion du dé
+        self.dice = Dice(self.screen_width)
         self.images = self.load_images()
 
         print(f"[DEBUG] Couleur du joueur (RGB) : {self.player_color}")
@@ -220,7 +223,7 @@ class Board:
             pygame.draw.polygon(self.screen, (0, 0, 0), [p1, p2, p3])
 
     def draw_labels(self):
-        font = pygame.font.SysFont("arial", 23)
+        font = pygame.font.SysFont("arial", int(self.cell_size/3))
         num = 1
         for col in range(self.cols):
             for row in range(self.rows):
@@ -237,7 +240,7 @@ class Board:
                 num += 1
 
     def draw_dice_area(self):
-        rect = pygame.Rect(367, 555, 100, 60)
+        rect = pygame.Rect((self.screen_width - 100) // 2, 640, 100, 60)
         pygame.draw.rect(self.screen, (100, 200, 250), rect, border_radius=15)
         pygame.draw.rect(self.screen, (0, 0, 0), rect, 2, border_radius=15)
         font = pygame.font.SysFont(None, 28)

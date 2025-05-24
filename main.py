@@ -3,7 +3,7 @@ from splash import show_splash
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((420, 600))
+    screen = pygame.display.set_mode((480, 800))
     pygame.display.set_caption("Super Ludo")
 
     show_splash(screen)
