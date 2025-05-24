@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import os
+from utils import*
 
 class Dice:
     def __init__(self):
@@ -47,7 +48,10 @@ class Dice:
         self.draw_dots(surface, rect)
 
 class Board:
-    def __init__(self, screen):
+
+    #stop_background_music()  #stop la musique sur l'interface de jeu
+
+    def __init__(self, screen, player_color, num_players, computer_color):
         self.screen = screen
         pygame.init()
         pygame.font.init()
@@ -55,20 +59,48 @@ class Board:
 
         self.screen_width = 900
         self.screen_height = 720
+
+        # width, height = screen.get_size()
+
         self.cell_size = 80
         self.cols = 10
         self.rows = 6
         self.margin_top = 50
         self.margin_left = 50
+        player_color_fr = COLOR_TRANSLATION.get(player_color, player_color)
+        self.player_color = PLAYER_COLORS[player_color_fr]
+        computer_color_fr = COLOR_TRANSLATION.get(computer_color, computer_color)
+        self.computer_color = PLAYER_COLORS[computer_color_fr]
+
+        self.num_players = num_players    # ✅ Stocke le nombre de joueurs
+        # Chargement des icônes de contrôle (pause, play, home)
+        self.buttons = self.load_control_buttons()
+        self.button_rects = self.get_button_rects()
+        self.icons = self.load_images()
+        self.is_paused = False
+
+
+
 
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Super Ludo")
 
+        # ✅ Génère une couleur différente pour l'ordi
+        all_colors = ["Rouge", "Vert", "Jaune", "Bleu"]
+        available_colors = [c for c in all_colors if c != self.player_color]
+        self.computer_color = random.choice(available_colors)
+
+
         self.dice = Dice()
         self.images = self.load_images()
 
-        if os.path.exists("assets/song/dice.mp3"):
-            self.dice_sound = pygame.mixer.Sound("assets/song/dice.mp3")
+        print(f"[DEBUG] Couleur du joueur (RGB) : {self.player_color}")
+        print(f"[DEBUG] Couleur du computer (RGB) : {self.computer_color}")
+        print(f"[DEBUG] Couleur disponible (RGB) : {available_colors}")
+
+
+        if os.path.exists("assets/audio/dice.mp3"):
+            self.dice_sound = pygame.mixer.Sound("assets/audio/dice.mp3")
         else:
             self.dice_sound = None
             print("Son du dé non trouvé.")
@@ -160,6 +192,17 @@ class Board:
                 x = pos[0] * self.cell_size + self.margin_left
                 y = pos[1] * self.cell_size + self.margin_top
                 self.screen.blit(image, (x, y))
+        # ✅ Dessiner le pion du joueur
+        player_rgb = self.get_rgb_color(self.player_color)
+        pygame.draw.circle(self.screen, player_rgb,
+                           (self.margin_left + self.cell_size // 3, self.margin_top + self.cell_size // 2), 12)
+
+        if self.num_players == 2:
+            # ✅ Dessiner le pion de l'ordi (sur la même case mais déplacé légèrement)
+            computer_rgb = self.get_rgb_color(self.computer_color)
+            pygame.draw.circle(self.screen, computer_rgb,
+                               (self.margin_left + 2 * self.cell_size // 3, self.margin_top + self.cell_size // 2), 12)
+
 
     def draw_arrows(self):
         for start, end in self.connections:
@@ -209,6 +252,10 @@ class Board:
         self.draw_labels()
         self.draw_dice_area()
         self.dice.draw(self.screen)
+        self.draw_control_buttons()
+        if self.is_paused:
+            self.draw_pause_modal()
+
         pygame.display.flip()
 
     def roll_dice_with_animation(self):
@@ -239,6 +286,120 @@ class Board:
 
         self.dice.roll()
         self.draw()
+
+    def get_rgb_color(self, name):
+        colors = {
+            "Rouge": (255, 0, 0),
+            "Vert": (0, 255, 0),
+            "Jaune": (255, 255, 0),
+            "Bleu": (0, 0, 255)
+        }
+        return colors.get(name, self.player_color)  # ✅ Par défaut noir si non reconnu
+    
+    def load_control_buttons(self):
+        base_path = 'assets/icons'
+        icons = {
+            'pause': 'pause.png',
+            'play': 'play.png',
+            'home': 'home.png'
+        }
+        buttons = {}
+        for name, file in icons.items():
+            path = os.path.join(base_path, file)
+            if os.path.exists(path):
+                img = pygame.image.load(path).convert_alpha()
+                img = pygame.transform.scale(img, (40, 40))
+                buttons[name] = img
+            else:
+                print(f"Icone non trouvée : {path}")
+        return buttons
+    
+    def draw_control_buttons(self):
+        for name, rect in self.button_rects.items():
+            image = self.buttons.get(name)
+            if image:
+                self.screen.blit(image, rect.topleft)
+
+    
+    def get_button_rects(self):
+        x_start = self.screen_width - 50
+        y_pos = 10
+        spacing = 50
+        return {
+            'pause': pygame.Rect(x_start, y_pos, 40, 40),
+            'play': pygame.Rect(x_start - spacing, y_pos, 40, 40),
+            'home': pygame.Rect(x_start - 2 * spacing, y_pos, 40, 40)
+        }
+    
+    def draw_pause_modal(self):
+        modal_width = 400
+        modal_height = 250
+        modal_x = (self.screen_width - modal_width) // 2
+        modal_y = (self.screen_height - modal_height) // 2
+        rect = pygame.Rect(modal_x, modal_y, modal_width, modal_height)
+        pygame.draw.rect(self.screen, (74, 145, 158), rect, border_radius=10)
+        pygame.draw.rect(self.screen, (235, 172, 162), rect, 2, border_radius=10)
+
+        font = pygame.font.SysFont("arial", 50)
+        text = font.render("⏸️ Jeu en pause", True, (0, 0, 0))
+        text_rect = text.get_rect(center=rect.center)
+        self.screen.blit(text, text_rect)
+
+# En dehors de la classe Board
+def show_menu():
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Super Ludo - Menu")
+    
+    from menu import Menu
+    menu = Menu(screen)
+    
+    running = True
+    while running:
+        menu.handle_events()
+        menu.draw()
+
+
+# ✅ Fonction d'affichage du plateau appelée depuis classique_mode.py
+def show_board(screen, player_color, num_players, computer_color):
+    # stop_background_music()
+    board = Board(screen, player_color, num_players, computer_color) 
+    clock = pygame.time.Clock()
+    running = True
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for name, rect in board.button_rects.items():
+                    if rect.collidepoint(event.pos):
+                        if name == 'pause':
+                            print("⏸️ Pause")
+                            board.is_paused = True
+                        elif name == 'play':
+                            print("▶️ Reprendre")
+                            board.is_paused = False
+                        elif name == 'home':
+                             from Board import show_menu
+                             show_menu()
+                             return
+
+                if not board.is_paused and board.dice.rect.collidepoint(event.pos):
+                    board.roll_dice_with_animation()
+
+
+        board.draw()
+        clock.tick(30)
+
+    screen.fill((255, 255, 255))
+    board.draw()
+    pygame.display.flip()
+    clock.tick(30)
+
+
+    pygame.quit()
+
 
 # if __name__ == '__main__':
 #     board = Board()

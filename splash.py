@@ -17,10 +17,10 @@ def show_splash(screen):
     time.sleep(3)  # Affiche pendant 5 secondes
 
     # Affiche le menu principal après la page de chargement
+    # ton animation de splash ici
+    pygame.time.delay(2000)  # exemple
+
     menu = Menu(screen)
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    while True:
+        menu.handle_events()
         menu.draw()

@@ -2,6 +2,10 @@ import pygame
 import os
 import time
 from mode_selection import show_mode_selection
+import math
+from utils import play_background_music
+
+
 
 class Menu:
     def __init__(self, screen):
@@ -34,6 +38,8 @@ class Menu:
 
         self.hovered_button = None
         self.clock = pygame.time.Clock()
+
+    play_background_music()
 
     def handle_events(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -74,7 +80,8 @@ class Menu:
         draw_height = int(button_height * scale)
         draw_x = x - (draw_width - button_width) // 2
 
-        offset_y = int(5 * pygame.math.sin((time.time() - self.hover_animation_start) * 6)) if is_hovered else 0
+        offset_y = int(5 * math.sin((time.time() - self.hover_animation_start) * 6))
+
         draw_y = y - (draw_height - button_height) // 2 + offset_y
 
         base_color = (100, 170, 220) if is_hovered else (70, 130, 180)
@@ -103,6 +110,13 @@ class Menu:
             start_x += icon_width + spacing
 
         self.screen.blit(label, (start_x, center_y))
+
+        def show_menu(self):
+            running = True
+            while running:
+                self.handle_events()
+                self.draw()
+
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))

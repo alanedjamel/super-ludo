@@ -1,6 +1,9 @@
 # classique_mode.py
 import pygame
 import sys
+from Board import show_board  # ✅ IMPORT DE LA FONCTION show_board DEPUIS Board.py
+
+
 
 def show_classic_mode_settings(screen):
     pygame.init()
@@ -10,6 +13,14 @@ def show_classic_mode_settings(screen):
 
     selected_color = None
     selected_players = None
+
+    # ✅ Dictionnaire pour convertir le nom en couleur pygame
+    color_name_to_pygame = {
+        "Rouge": "red",
+        "Vert": "green",
+        "Jaune": "yellow",
+        "Bleu": "blue"
+    }
 
     running = True
     while running:
@@ -27,9 +38,9 @@ def show_classic_mode_settings(screen):
         color_buttons = []
         for idx, (name, color) in enumerate(colors):
             rect = pygame.Rect(60 + idx * 85, 140, 50, 50)
-            pygame.draw.circle(screen, color, rect.center, 20)  # Cercle plus petit (rayon 20)
+            pygame.draw.circle(screen, color, rect.center, 20)
             if selected_color == name:
-                pygame.draw.circle(screen, (255, 255, 255), rect.center, 6)  # Petit cercle de sélection
+                pygame.draw.circle(screen, (255, 255, 255), rect.center, 15)
             color_buttons.append((rect, name))
 
         # === Section joueurs ===
@@ -42,7 +53,7 @@ def show_classic_mode_settings(screen):
 
         player_buttons = [(pygame.Rect(120, 360, 60, 40), 2), (pygame.Rect(240, 360, 60, 40), 4)]
         for rect, num in player_buttons:
-            bg_color = (206, 106, 107) if selected_players == num else (100, 100, 100)  # #CE6A6B sinon gris
+            bg_color = (206, 106, 107) if selected_players == num else (100, 100, 100)
             pygame.draw.rect(screen, bg_color, rect, border_radius=8)
             label = small_font.render(f"{num}", True, (255, 255, 255))
             screen.blit(label, (rect.x + 20, rect.y + 10))
@@ -50,8 +61,8 @@ def show_classic_mode_settings(screen):
         # === Bouton suivant ===
         next_button = pygame.Rect(width // 2 - 60, 450, 120, 50)
         if selected_color and selected_players:
-            pygame.draw.rect(screen, (206, 106, 107), next_button, border_radius=10)  # #CE6A6B
-            pygame.draw.rect(screen, (33, 46, 83), next_button, 3, border_radius=10)  # #212E53
+            pygame.draw.rect(screen, (206, 106, 107), next_button, border_radius=10)
+            pygame.draw.rect(screen, (33, 46, 83), next_button, 3, border_radius=10)
             next_label = font.render("Suivant", True, (255, 255, 255))
         else:
             pygame.draw.rect(screen, (60, 60, 60), next_button, border_radius=10)
@@ -79,12 +90,27 @@ def show_classic_mode_settings(screen):
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if back_rect.collidepoint(event.pos):
-                    return  # Retour à l'écran précédent
+                    return
 
                 if selected_color and selected_players:
                     if next_button.collidepoint(event.pos):
                         print(f"Couleur : {selected_color}, Joueurs : {selected_players}")
-                        # ➤ Tu peux appeler l'écran suivant ici
+                        pygame.time.delay(200)
+
+                        # Couleur du joueur (déjà choisie)
+                        player_color = color_name_to_pygame[selected_color]
+
+                        # Couleurs disponibles
+                        all_colors = ["red", "green", "yellow", "blue"]
+                        all_colors.remove(player_color)  # On retire celle du joueur
+
+                        # Choix aléatoire pour l'ordinateur
+                        import random
+                        computer_color = random.choice(all_colors)
+
+                        # Appel du plateau avec les deux couleurs
+                        show_board(screen, player_color, selected_players, computer_color)
+
                         running = False
 
                 for rect, name in color_buttons:

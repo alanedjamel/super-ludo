@@ -2,6 +2,8 @@ import pygame
 import sys
 from classic_mode import show_classic_mode_settings
 
+
+
 def show_mode_selection(screen):
     pygame.font.init()
     font = pygame.font.SysFont("comicsansms", 26, bold=True)
